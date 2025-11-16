@@ -1,14 +1,18 @@
+
 import 'package:flutter/material.dart';
 import 'package:kavesys_app/components/icons.dart';
+import 'package:kavesys_app/screens/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onClientView;
-  final bool Function(String, String) onLogin;
+  final Future<bool> Function(String, String) onLogin;
+  final VoidCallback onBack;
 
   const LoginScreen({
     Key? key,
     required this.onClientView,
     required this.onLogin,
+    required this.onBack,
   }) : super(key: key);
 
   @override
@@ -21,14 +25,21 @@ class _LoginScreenState extends State<LoginScreen> {
   String _password = '';
   String? _error;
 
-  void _handleLogin() {
+  void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final success = widget.onLogin(_email, _password);
-      if (!success) {
+      if (mounted) {
         setState(() {
-          _error = 'Credenciales incorrectas. Intente de nuevo.';
+          _error = null; // Clear previous errors
         });
+      }
+      final success = await widget.onLogin(_email, _password);
+      if (mounted) {
+        if (!success) {
+          setState(() {
+            _error = 'Credenciales incorrectas. Intente de nuevo.';
+          });
+        }
       }
     }
   }
@@ -80,10 +91,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text(
-                          'Acceso de Empleados',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back),
+                              onPressed: widget.onBack,
+                            ),
+                            const Expanded(
+                              child: Text(
+                                'Acceso de Empleados',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -143,7 +164,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => RegisterScreen()),
+                    );
+                  },
+                  child: const Text('¿No tienes cuenta? Regístrate'),
+                ),
+                const SizedBox(height: 8),
                 const Text('o'),
+                const SizedBox(height: 8),
                 TextButton(
                   onPressed: widget.onClientView,
                   child: const Text('Ver catálogo de productos como cliente'),

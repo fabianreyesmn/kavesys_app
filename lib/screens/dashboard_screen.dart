@@ -1,5 +1,7 @@
+
 import 'package:flutter/material.dart';
-import 'package:kavesys_app/app_data.dart';
+import 'package:provider/provider.dart';
+import 'package:kavesys_app/services/app_state_service.dart';
 import 'package:kavesys_app/models/product.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -18,139 +20,143 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appData = AppData.of(context)!;
-    final user = appData.user;
-    final products = appData.products;
-    final lowStockItems = products.where((p) => p.stock < p.minStock).toList();
+    return Consumer<AppStateService>(
+      builder: (context, appState, child) {
+        final user = appState.user;
+        final products = appState.products;
+        final lowStockItems = products.where((p) => p.stock < p.minStock).toList();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${getGreeting()}, ${user?.name.split(' ')[0]}!',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const Text(
-            'Aquí tienes un resumen de tu sistema.',
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 24),
-          Row(
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: StatCard(
-                  title: 'Productos Totales',
-                  value: products.length.toString(),
-                  icon: Icons.inventory_2,
-                  color: Colors.blue,
+              Text(
+                '${getGreeting()}, ${user?.name.split(' ')[0]}!',
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const Text(
+                'Aquí tienes un resumen de tu sistema.',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: StatCard(
+                      title: 'Productos Totales',
+                      value: products.length.toString(),
+                      icon: Icons.inventory_2,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: StatCard(
+                      title: 'Bajos en Stock',
+                      value: lowStockItems.length.toString(),
+                      icon: Icons.warning,
+                      color: Colors.red,
+                      highlight: lowStockItems.isNotEmpty,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Alertas de Inventario',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    if (lowStockItems.isNotEmpty)
+                      ...lowStockItems.map((item) => LowStockListItem(item: item))
+                    else
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: Text(
+                            'No hay productos bajos en stock. ¡Buen trabajo!',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: StatCard(
-                  title: 'Bajos en Stock',
-                  value: lowStockItems.length.toString(),
-                  icon: Icons.warning,
-                  color: Colors.red,
-                  highlight: lowStockItems.isNotEmpty,
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Acceso Rápido',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: QuickLink(
+                            label: 'Ver Inventario',
+                            icon: Icons.inventory,
+                            onTap: () {
+                              // TODO: Navigate to inventory screen
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: QuickLink(
+                            label: 'Generar Reporte',
+                            icon: Icons.bar_chart,
+                            onTap: () {
+                              // TODO: Navigate to reports screen
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 2,
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Alertas de Inventario',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                if (lowStockItems.isNotEmpty)
-                  ...lowStockItems.map((item) => LowStockListItem(item: item))
-                else
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text(
-                        'No hay productos bajos en stock. ¡Buen trabajo!',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 2,
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Acceso Rápido',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: QuickLink(
-                        label: 'Ver Inventario',
-                        icon: Icons.inventory,
-                        onTap: () {
-                          // TODO: Navigate to inventory screen
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: QuickLink(
-                        label: 'Generar Reporte',
-                        icon: Icons.bar_chart,
-                        onTap: () {
-                          // TODO: Navigate to reports screen
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
+
 
 class StatCard extends StatelessWidget {
   final String title;
@@ -195,22 +201,24 @@ class StatCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 32),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(color: Colors.grey),
-              ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: highlight ? color : Colors.black,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.grey),
                 ),
-              ),
-            ],
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: highlight ? color : Colors.black,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
